@@ -1,0 +1,72 @@
+1) ejecutar ps para identificar en que puerto estas (DESDE DONDE SE EJECUTA) y guardar el puerto variable
+2) ejecutar el ps con -lu para ver todas conexiones 
+3) filtrar las todas las conexiones MENOS la actual que tengo en el puerto que esta en la variable
+4) guardar en un archivos los puertos o conexiones 
+5) recorrer la lista de los y conexiones y por cada una tendriamos ir matando sus procesos
+5.1) Si existe error al matar proces lo redireccionas archivos en este lugar (/dev/null) bote de basura 
+6) cambiar password con passwd
+
+Consideraciones: 
+Mensajes: 
+
+Si matas conexiones decir algo: "El script ha matado todas las conexiones agenas a la tuya, por seguridad cambia tu clave"
+Si no mato nada : "Nadie a ingresa a tu cuenta"
+
+mensaje final: "el script ha finalizado"
+
+No recibe parametros
+
+
+
+#######################################################################
+#                         ITESM-CQ                                    #
+#  Objetivo: Práctica 15:   Ejecuta el SCRIPT e identifica conexiones #
+#  sospechosas y mata los procesos uno por uno y por seguridad se     #
+#  cambia la contraseña.                                              #
+#  Ejemplo: $ PF_1703613                                              #
+#                                                                     #
+# Autor: Daniel Cu Sánchez # Fecha: 25 Mayo 2021.                     #
+#######################################################################
+
+
+# 1- Identifica puerto actual desde donde se ejecuta este script
+
+PUERTO_ACTUAL=`ps | tr -s [' '] ['#*'] | egrep "ksh" | cut -f3 -d#`
+USUARIO=`who | egrep "$PUERTO_ACTUAL" |  tr -s [' '] ['#*'] | cut -f1 -d#`
+
+echo "Tu conexión actual esta en este puerto: $PUERTO_ACTUAL"
+
+
+# 2- Identificar todas los procesos ejecutados desde otras conexiones
+
+# 3- Filtra todas las conexiones que vamos a terminar
+PARENT_ID=`ps -lu $USUARIO | egrep "$PUERTO_ACTUAL" | egrep "ksh" | tr -s [' '] ['#*'] | cut -f6 -d#`
+# 4- Guarda las conexiones que deseamos terminar
+ps -lu $USUARIO | egrep -v "$PUERTO_ACTUAL | $PARENT_ID" | tr -s [' '] ['#*'] | sed '1d' | cut -f5 -d# > archivo_conexiones_matar
+
+# 5- Recorre la lista de las conexiones a terminar
+for CONEXION in `cat archivo_conexiones_matar`
+do
+  kill -1 $CONEXION
+  if test $? -eq 1
+  then
+    kill -15 $CONEXION
+    if test $? -eq 1
+    then
+      kill -9 $CONEXION
+    fi
+  fi
+done
+
+ARCHIVO_VACIO=`cat archivo_conexiones_matar | wc -lc`
+if test $? -eq 0
+then
+  passwd
+else
+  echo "TU CUENTA ESTA SEGURA"
+fi
+echo "SCRIPT FINALIZADO"
+
+
+
+#ps -lu $USUARIO | egrep -v $PUERTO_ACTUAL | tr -s [' '] ['#*'] | sed '1d' | cut -f5 -d

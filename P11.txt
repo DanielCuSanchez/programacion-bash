@@ -1,0 +1,8 @@
+argumentos
+archivo
+ciclo
+existe cuenta
+privilegios - no tiene permisos
+buscar el ls -la 
+existe saca la informacion 
+no ha creado ese archivo
